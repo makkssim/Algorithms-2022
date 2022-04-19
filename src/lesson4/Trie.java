@@ -2,6 +2,7 @@ package lesson4;
 
 import java.util.*;
 import kotlin.NotImplementedError;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,8 +93,49 @@ public class Trie extends AbstractSet<String> implements Set<String> {
     @NotNull
     @Override
     public Iterator<String> iterator() {
-        // TODO
-        throw new NotImplementedError();
+        return new PrefixTrieIterator();
+    }
+
+    public class PrefixTrieIterator implements Iterator<String> {
+        ArrayDeque<String> stack = new ArrayDeque<>();
+        String cur;
+
+        PrefixTrieIterator() {
+            add(root, "");
+        }
+
+        public void add(Node node, String str){
+            for(var child: node.children.entrySet()){
+                if(child.getKey() == (char) 0) stack.add(str); else add(child.getValue(),str + child.getKey());
+            }
+        }
+
+        //трудоемкость O(1)
+        //ресурсоемкость O(1)
+        @Override
+        public boolean hasNext() {
+            return !stack.isEmpty();
+        }
+
+        //трудоемкость O(1)
+        //ресурсоемкость O(1)
+        @Override
+        public String next() {
+            if (!hasNext()) throw new NoSuchElementException(); else return cur = stack.pop();
+        }
+
+
+        //трудоемкость O(1)
+        //ресурсоемкость O(1)
+        @Override
+        public void remove() {
+            if (cur != null) {
+                Trie.this.remove(cur);
+                cur = null;
+            } else throw new IllegalStateException();
+
+
+        }
     }
 
 }

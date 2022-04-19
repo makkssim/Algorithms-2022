@@ -109,7 +109,31 @@ abstract class AbstractTrieTest {
                 trieIter.next()
             }
             println("All clear!")
+
         }
+        val controlSet = sortedSetOf<String>()
+        for (i in 1..50) {
+            val string = random.nextString("abcdefghijklmnopqrstuvwxyz", 1, 15)
+            controlSet.add(string)
+        }
+        val trieSet = create()
+        assertFalse(
+            trieSet.iterator().hasNext(),
+            "Iterator of an empty set should not have any next elements."
+        )
+        for (element in controlSet) {
+            trieSet += element
+        }
+        val iterator1 = trieSet.iterator()
+        val iterator2 = trieSet.iterator()
+        println("Checking if calling hasNext() changes the state of the iterator...")
+        while (iterator1.hasNext()) {
+            assertEquals(
+                iterator2.next(), iterator1.next(),
+                "Calling TrieIterator.hasNext() changes the state of the iterator."
+            )
+        }
+        println("All clear!")
     }
 
     protected fun doIteratorRemoveTest() {
@@ -170,6 +194,32 @@ abstract class AbstractTrieTest {
                 )
             }
             println("All clear!")
+        }
+
+        val listOfString = mutableListOf<String>()
+        val controlSet = mutableSetOf<String>()
+        val trieSet = create()
+        for (i in 0..30) {
+            val string = random.nextString("abcdefghijklmnopqrstuvwxyz", 1, 30)
+            listOfString.add(string)
+            controlSet.add(string)
+            trieSet.add(string)
+        }
+
+        for (i in 0..30) {
+            controlSet.remove(listOfString[i])
+            val iterator = trieSet.iterator()
+            while (iterator.hasNext()) {
+                val element = iterator.next()
+                if (element == listOfString[i]) {
+                    println("Control set: $controlSet")
+                    println("Removing element \"$element\" from trie set through the iterator...")
+                    iterator.remove()
+                    assertEquals(controlSet, trieSet)
+                    println("All clear!")
+                    break
+                }
+            }
         }
     }
 

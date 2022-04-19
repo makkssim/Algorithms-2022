@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.AbstractSet;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 public class OpenAddressingSet<T> extends AbstractSet<T> {
@@ -20,6 +21,11 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
     private int startingIndex(Object element) {
         return element.hashCode() & (0x7FFFFFFF >> (31 - bits));
     }
+
+    private static class Removed {
+    }
+
+    private final Removed removed = new Removed();
 
     public OpenAddressingSet(int bits) {
         if (bits < 2 || bits > 31) {
@@ -67,7 +73,7 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
         int startingIndex = startingIndex(t);
         int index = startingIndex;
         Object current = storage[index];
-        while (current != null) {
+        while (current != null && current != removed) {
             if (current.equals(t)) {
                 return false;
             }
@@ -93,9 +99,24 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
      *
      * Средняя
      */
+    //трудоемкость O(n)
+    //ресурсоемкость O(1)
     @Override
     public boolean remove(Object o) {
-        return super.remove(o);
+        if (!contains(o)) return false;
+        int index = startingIndex(o);
+        Object cur = storage[index];
+        while(cur != null){
+            if(cur.equals(o)){
+                size--;
+                storage[index] = removed;
+                cur = null;
+                return true;
+            }
+            index = (index + 1) % capacity;
+            cur = storage[index];
+        }
+        return false;
     }
 
     /**
@@ -111,7 +132,43 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
     @NotNull
     @Override
     public Iterator<T> iterator() {
-        // TODO
-        throw new NotImplementedError();
+        return new OpenAddressingSetIterator();
+    }
+
+    public class OpenAddressingSetIterator implements Iterator<T> {
+        int numberOfIterations = 0;
+        int index = -1;
+        Object cur;
+
+        //трудоемкость O(1)
+        //ресурсоемкость O(1)
+        @Override
+        public boolean hasNext() {
+            return size > numberOfIterations;
+        }
+
+        //трудоемкость O(n)
+        //ресурсоемкость O(1)
+        @Override
+        public T next() {
+            if (!hasNext()) throw new NoSuchElementException();
+            cur = null;
+            while(cur == null || cur == removed){
+                index++;
+                cur = storage[index];
+            }
+            numberOfIterations++;
+            return (T) cur;
+        }
+
+        //трудоемкость O(1)
+        //ресурсоемкость O(1)
+        @Override
+        public void remove() {
+            if(cur == null || cur == removed || index < 0) throw new IllegalStateException();
+            size--;
+            cur = null;
+            storage[index] = removed;
+        }
     }
 }
