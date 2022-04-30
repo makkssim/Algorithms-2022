@@ -2,8 +2,8 @@ package lesson6;
 
 import kotlin.NotImplementedError;
 
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
 
 @SuppressWarnings("unused")
 public class JavaGraphTasks {
@@ -93,8 +93,32 @@ public class JavaGraphTasks {
      *
      * Если на входе граф с циклами, бросить IllegalArgumentException
      */
+    //трудоемкость  O(N^2)
+    //ресурсоемкость  O(N^2)
     public static Set<Graph.Vertex> largestIndependentVertexSet(Graph graph) {
-        throw new NotImplementedError();
+        if (new Path().isLoop(graph)) throw new IllegalArgumentException();
+        Set<Graph.Vertex> vertices = graph.getVertices();
+        Set<Set<Graph.Vertex>> independentSets = new HashSet<>();
+        if (vertices.isEmpty()) return Collections.emptySet();
+        for (Graph.Vertex firstIndVertexInSet: vertices){
+            Set<Graph.Vertex> independent = new HashSet<>();
+            Set<Graph.Vertex> dependent = new HashSet<>();
+            for (Graph.Vertex vertex: vertices) {
+                if (!dependent.contains(vertex)  && !graph.getNeighbors(firstIndVertexInSet).contains(vertex)) {
+                    independent.add(vertex);
+                    dependent.addAll(graph.getNeighbors(vertex));
+                }
+            }
+            independentSets.add(independent);
+        }
+        Set<Graph.Vertex> largestIndependentSet = new HashSet<>();
+        for (Set<Graph.Vertex> indSet : independentSets){
+            if (indSet.size() > largestIndependentSet.size()) largestIndependentSet = indSet;
+        }
+        return largestIndependentSet;
+
+
+
     }
 
     /**
@@ -117,8 +141,25 @@ public class JavaGraphTasks {
      *
      * Ответ: A, E, J, K, D, C, H, G, B, F, I
      */
+    //трудоемкость  O(N!)
+    //ресурсоемкость  O(N^2)
     public static Path longestSimplePath(Graph graph) {
-        throw new NotImplementedError();
+        Path longestPath = new Path();
+        Stack<Path> paths = new Stack<>();
+        int maxLength = 0;
+        for(Graph.Vertex vertex : graph.getVertices()) paths.push(new Path(vertex));
+        while (!paths.isEmpty()) {
+            Path path = paths.pop();
+            if(path.getLength() > maxLength){
+                maxLength = path.getLength();
+                longestPath = path;
+            }
+            Set<Graph.Vertex> neighboursOfLast = graph.getNeighbors(path.getVertices().get(path.getLength()));
+            for (Graph.Vertex neighbour : neighboursOfLast){
+                if(!path.contains(neighbour)) paths.push(new Path(path, graph, neighbour));
+            }
+        }
+        return longestPath;
     }
 
 

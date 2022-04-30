@@ -1,6 +1,5 @@
 package lesson5;
 
-import kotlin.NotImplementedError;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.AbstractSet;
@@ -110,7 +109,6 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
             if(cur.equals(o)){
                 size--;
                 storage[index] = removed;
-                cur = null;
                 return true;
             }
             index = (index + 1) % capacity;
@@ -137,7 +135,7 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
 
     public class OpenAddressingSetIterator implements Iterator<T> {
         int numberOfIterations = 0;
-        int index = -1;
+        int ind = -1;
         Object cur;
 
         //трудоемкость O(1)
@@ -154,8 +152,8 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
             if (!hasNext()) throw new NoSuchElementException();
             cur = null;
             while(cur == null || cur == removed){
-                index++;
-                cur = storage[index];
+                ind++;
+                cur = storage[ind];
             }
             numberOfIterations++;
             return (T) cur;
@@ -165,10 +163,11 @@ public class OpenAddressingSet<T> extends AbstractSet<T> {
         //ресурсоемкость O(1)
         @Override
         public void remove() {
-            if(cur == null || cur == removed || index < 0) throw new IllegalStateException();
+            if(cur == null || ind < 0) throw new IllegalStateException();
+            storage[ind] = removed;
             size--;
             cur = null;
-            storage[index] = removed;
+            numberOfIterations--;
         }
     }
 }
